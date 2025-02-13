@@ -1,0 +1,20 @@
+body {
+    display: flex;          /* Make body a flex container */
+    justify-content: center;  /* Center content horizontally */
+    align-items: center;     /* Center content vertically */
+    height: 100vh;         /* Make body take up full viewport height */
+    margin: 0;              /* Remove default body margin */
+    background-color: #f0f0f0; /* Light gray background */
+}
+
+#player-container {
+    text-align: center;      /* Center content inside the container */
+}
+
+#visualizer {
+    border: 1px solid #ccc; /* Add a light border around the visualizer */
+}
+
+#audio-element {
+    margin-top: 20px;       /* Add some space above the audio controls */
+}
