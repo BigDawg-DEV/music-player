@@ -1,58 +1,72 @@
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const audioElement = document.getElementById('audio-element');
-const analyser = audioContext.createAnalyser();
-const canvas = document.getElementById('visualizer');
+const audioFile = document.getElementById('audioFile');
+const audio = document.getElementById('myAudio');
+const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
+let audioContext;
+let analyser;
+let source;
 
-const audioSource = audioContext.createMediaElementSource(audioElement);
-audioSource.connect(analyser);
-analyser.connect(audioContext.destination);
+audioFile.addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
 
-analyser.fftSize = 2048;
-const bufferLength = analyser.frequencyBinCount;
-const dataArray = new Uint8Array(bufferLength);
-
-canvas.width = 400;
-canvas.height = 400;
-
-let hue = 0;
-
-function drawVisualizer() {
-    requestAnimationFrame(drawVisualizer);
-
-    analyser.getByteFrequencyData(dataArray);
-
-    ctx.fillStyle = 'rgb(0, 0, 0)'; // Black background
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = 150; // Adjust circle size
-
-    ctx.lineWidth = 2; // Adjust line thickness
-
-    hue = (hue + 0.5) % 360; // Rainbow color effect
-
-    for (let i = 0; i < bufferLength; i++) {
-        const value = dataArray[i];
-        const angle = (i / bufferLength) * Math.PI * 2; // Full circle
-        const lineLength = (value / 255) * radius; // Scale line length
-
-        const x1 = centerX + Math.cos(angle) * radius;
-        const y1 = centerY + Math.sin(angle) * radius;
-        const x2 = centerX + Math.cos(angle) * (radius + lineLength);
-        const y2 = centerY + Math.sin(angle) * (radius + lineLength);
-
-        ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`; // Rainbow color
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+  reader.onload = function(e) {
+    audio.src = e.target.result;
+    if (!audioContext) {
+        setupAudioContext();
     }
+  }
+  reader.readAsDataURL(file);
+});
+
+function setupAudioContext() {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    source = audioContext.createMediaElementSource(audio);
+
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+    analyser.fftSize = 2048;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+     audio.play().then(() => {
+      drawVisualizer(bufferLength, dataArray);
+    }).catch(error => {
+        console.error("Error playing audio:", error);
+    });;
+
+
 }
 
-audioElement.addEventListener('play', () => {
-    audioContext.resume().then(() => {
-        drawVisualizer();
-    });
-});
+function drawVisualizer(bufferLength, dataArray) {
+    requestAnimationFrame(() => drawVisualizer(bufferLength, dataArray));
+    analyser.getByteFrequencyData(dataArray);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const barWidth = (canvas.width / bufferLength) * 2.5; // Spacing between the bars
+    let barHeight;
+    let x = 0;
+
+    for(let i = 0; i < bufferLength; i++) {
+        barHeight = dataArray[i];
+
+        // Create gradient
+        const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+        gradient.addColorStop(0, 'blue');   // Start color
+        gradient.addColorStop(1, 'purple'); // End color
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, canvas.height - barHeight/2, barWidth, barHeight/2);
+
+        x += barWidth + 1; // Add space between bars
+    }
+
+    //Draw horizontal line
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height);
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.strokeStyle = 'white';
+    ctx.stroke();
+}
