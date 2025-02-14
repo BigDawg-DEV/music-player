@@ -15,6 +15,26 @@ audioFile.addEventListener('change', function(event) {
     audio.src = e.target.result;
     if (!audioContext) {
         setupAudioContext();
+      let isPlaying = false; // Keep track of play state
+
+playPauseButton.addEventListener('click', function() {
+    if (!audioContext) { // First time setup
+        setupAudioContext();
+        audio.play(); // Start playing on first click
+        isPlaying = true;
+        playPauseButton.textContent = "Pause"; // Change button text
+    } else {
+        if (isPlaying) {
+            audio.pause();
+            isPlaying = false;
+            playPauseButton.textContent = "Play"; // Change button text
+        } else {
+            audio.play();
+            isPlaying = true;
+            playPauseButton.textContent = "Pause"; // Change button text
+        }
+    }
+});
     }
   }
   reader.readAsDataURL(file);
