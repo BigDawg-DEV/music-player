@@ -1,3 +1,4 @@
+const playPauseButton = document.getElementById('playPauseButton');
 const audioFile = document.getElementById('audioFile');
 const audio = document.getElementById('myAudio');
 const canvas = document.getElementById('myCanvas');
